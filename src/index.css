@@ -1,0 +1,12 @@
+body {
+    background-color: blanchedalmond;
+}
+
+#card_holder {
+    border: 3px black solid;
+}
+
+.card {
+    width: 300px;
+    height: auto;
+}
