@@ -35,7 +35,7 @@ function renderCards(pack, element, clickEvent){
     for(let i = 0; i < pack.length; ++i){
         let card = pack[i]
         const cardImg = document.createElement("img");
-        cardImg.class = "card";
+        cardImg.classList.add("card");
         cardImg.src = card.img;
         if(card.back !== ""){
             cardImg.addEventListener("mouseover", () => {cardImg.src = card.back});
