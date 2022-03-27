@@ -20,22 +20,52 @@ async function getCard(uri) {
     }
 }
 
+function colorCheck(colorConsistency, colorIdentity){
+    if (colorIdentity.length > 1){
+        colorConsistency.M++;
+    }
+    else if (colorIdentity.length == 1) {
+        colorConsistency[colorIdentity[0]]++;
+    }
+    return colorConsistency;
+}
+
 async function getPack(){
     let pack = [];
+    let colorConsistency = {W:0, U:0, B:0, R:0, G:0, M:0};
+    let curElem = 0;
     //land
     pack.push(await getCard("https://api.scryfall.com/cards/random?q=usd>%3D10+t%3Aland"));
-    
+    colorConsistency = colorCheck(colorConsistency, pack[curElem].color);
+    curElem++;
     //Foil Analog
     pack.push(await getCard("https://api.scryfall.com/cards/random?q=%28block%3Ahtr+or+set%3Acmb2+or+%28set%3Apcel+%28t%3Acreature+or+t%3Asummon%29%29+or+%28border%3Asilver+and+usd>%3D7%29%29+-is%3Atoken"));
+    colorConsistency = colorCheck(colorConsistency, pack[curElem].color);
+    curElem++;
     //Rare Analog
     pack.push(await getCard("https://api.scryfall.com/cards/random?q=%28usd>%3D100+-is%3Atoken+-t%3Aland%29"));
+    colorConsistency = colorCheck(colorConsistency, pack[curElem].color);
+    curElem++;
     //Uncommon Analog
     for(let i = 0; i < 3; ++i){
-        pack.push(await getCard("https://api.scryfall.com/cards/random?q=%28usd>%3D10+-is%3Atoken+-t%3Aland%29"));
+        pack.push(await getCard("https://api.scryfall.com/cards/random?q=%28usd<%3D100+usd>%3D10+-is%3Atoken+-t%3Aland%29"));
+        colorConsistency = colorCheck(colorConsistency, pack[curElem].color);
+        curElem++;
     }
     //Common Analog
+    let apiCall = "https://api.scryfall.com/cards/random?q=usd<%3D10+%28rarity%3Arare+or+rarity%3Amythic%29%28-is%3Atoken+-t%3Aland+-is%3Adigital+-set%3Apcel+-block%3Ahtr+-set%3Acmb2+-set%3Acmb1%29";
+    
     for(let i = 0; i < 10; ++i){
-        pack.push(await getCard("https://api.scryfall.com/cards/random?q=usd<%3D10+%28rarity%3Arare+or+rarity%3Amythic%29%28-is%3Atoken+-t%3Aland+-is%3Adigital+-set%3Apcel+-block%3Ahtr+-set%3Acmb2+-set%3Acmb1%29"));
+        let curApiCall = apiCall;
+        for(const key in colorConsistency){
+            
+            if(colorConsistency[key] >= 3){
+                curApiCall = curApiCall + "+-c%3A" + key;
+            }
+        }
+        pack.push(await getCard(curApiCall));
+        colorConsistency = colorCheck(colorConsistency, pack[curElem].color);
+        curElem++;
     }
 
     //for(let i = 0; i < 15; ++i){
