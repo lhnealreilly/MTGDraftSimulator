@@ -1,19 +1,19 @@
+import {getCard, getPack} from "./packCreate.js"
 
 
-
-function getPack(){
-
-}
-
-async function getCard(query){
-
-}
-
-function renderPack(pack, element){
+async function renderPack(pack, element){
     for(const card of pack){
-        let cardImg = document.createElement(image);
+        console.log(card.img);
+        const cardImg = document.createElement("img");
         cardImg.class = "card";
         cardImg.src = card.img;
+        if(card.back !== ""){
+            cardImg.addEventListener("mouseover", () => {cardImg.src = card.back});
+            cardImg.addEventListener("mouseout", () => {cardImg.src = card.img});
+        }
         element.appendChild(cardImg);
     }
 }
+
+const cardDiv = document.getElementById('card_holder');
+renderPack(await getPack(), cardDiv);
