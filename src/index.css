@@ -2,7 +2,8 @@ body {
     background-color: blanchedalmond;
 }
 
-#card_holder {
+div {
+    margin: 2px;
     border: 3px black solid;
 }
 
