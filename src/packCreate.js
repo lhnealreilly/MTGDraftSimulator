@@ -53,7 +53,7 @@ async function getPack(){
         curElem++;
     }
     //Common Analog
-    let apiCall = "https://api.scryfall.com/cards/random?q=usd<%3D10+%28rarity%3Arare+or+rarity%3Amythic%29%28-is%3Atoken+-t%3Aland+-is%3Adigital+-set%3Apcel+-block%3Ahtr+-set%3Acmb2+-set%3Acmb1%29";
+    let apiCall = "https://api.scryfall.com/cards/random?q=usd<%3D10+%28rarity%3Arare+or+rarity%3Amythic%29%28-is%3Atoken+-t%3Aland+-is%3Adigital+-set%3Apcel+-block%3Ahtr+-set%3Acmb2+-set%3Acmb1%29-%28type%3Aplane+or+type%3Ascheme%29";
     
     for(let i = 0; i < 10; ++i){
         let curApiCall = apiCall;
