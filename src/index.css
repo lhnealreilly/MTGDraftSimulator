@@ -14,4 +14,10 @@ h1 {
 .card {
     width: 250px;
     height: auto;
+    padding: 2px;
+}
+
+.selected {
+    padding: 0;
+    border: 2px solid blue;
 }

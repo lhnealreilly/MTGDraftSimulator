@@ -13,10 +13,16 @@ async function getCard(uri) {
             return await getCard(uri);
         }
         if (responseJSON.card_faces !== undefined) {
+            if(responseJSON.card_faces[0].image_uris === undefined || responseJSON.card_faces[1].image_uris === undefined){
+                return await getCard(uri);
+            }
             img_url = responseJSON.card_faces[0].image_uris.png;
             card_back = responseJSON.card_faces[1].image_uris.png;
         }
         else {
+            if(responseJSON.image_uris === undefined){
+                return await getCard(uri);
+            }
             img_url = responseJSON.image_uris.png;
         }
         return {name:cardName, img:img_url, back:card_back, color:color_identity};

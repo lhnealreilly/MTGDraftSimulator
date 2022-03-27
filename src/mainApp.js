@@ -5,6 +5,9 @@ let packArr = [];
 let currPack = [];
 let packIndex = 0;
 
+let cardSelected;
+let cardSelectedIndex;
+
 async function createPacks(n){
     for(let i = 0; i < n; ++i){
         packArr.push(await getPack());
@@ -21,6 +24,12 @@ function arrayRemove(arr, value) {
 function removeAllChildNodes(parent) {
     while (parent.firstChild) {
         parent.removeChild(parent.firstChild);
+    }
+}
+
+function clearSelectedCards(parent) {
+    for(const child of parent.children) {
+        child.classList.remove("selected");
     }
 }
 
@@ -43,19 +52,31 @@ function renderCards(pack, element, clickEvent){
         }
         if(clickEvent){
             cardImg.addEventListener("mouseup", () => {
-                addToDeck(card); 
-                pack.splice(i, 1);
-                pickRandomFromAllPacksExceptCurrent(packIndex);
-                currPack = packArr[(++packIndex)%packArr.length];
-                packIndex = packIndex % packArr.length; 
-                removeAllChildNodes(element); 
-                renderCards(currPack, element, true);
+                cardSelected = card;
+                cardSelectedIndex = i;
+                clearSelectedCards(element)
+                cardImg.classList.add("selected")
                 console.log(packArr);
             });
         }
         element.appendChild(cardImg);
     }
 }
+
+function confirmSelection(element){
+    if(cardSelected !== undefined){
+        addToDeck(cardSelected); 
+        currPack.splice(cardSelectedIndex, 1);
+        pickRandomFromAllPacksExceptCurrent(packIndex);
+        currPack = packArr[(++packIndex)%packArr.length];
+        packIndex = packIndex % packArr.length; 
+        removeAllChildNodes(element); 
+        renderCards(currPack, element, true);
+        cardSelected = undefined;
+    }
+}
+
+
 
 const deckDiv = document.getElementById('deck_holder');
 function addToDeck(card){
@@ -65,6 +86,9 @@ function addToDeck(card){
 
 const cardDiv = document.getElementById('pack_holder');
 
-await createPacks(1);
+await createPacks(2);
 currPack = packArr[packIndex];
 renderCards(currPack, cardDiv, true);
+
+const confirmButton = document.getElementById('confirm');
+confirmButton.addEventListener("click", () => {confirmSelection(cardDiv)});
