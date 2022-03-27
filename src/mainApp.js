@@ -65,6 +65,6 @@ function addToDeck(card){
 
 const cardDiv = document.getElementById('pack_holder');
 
-await createPacks(9);
+await createPacks(1);
 currPack = packArr[packIndex];
 renderCards(currPack, cardDiv, true);

@@ -9,12 +9,15 @@ async function getCard(uri) {
         let img_url = "";
         let card_back = "";
         let color_identity = responseJSON.color_identity;
+        if(responseJSON.image_status === "missing"){
+            return await getCard(uri);
+        }
         if (responseJSON.card_faces !== undefined) {
-            img_url = responseJSON.card_faces[0].image_uris.small;
-            card_back = responseJSON.card_faces[1].image_uris.small;
+            img_url = responseJSON.card_faces[0].image_uris.png;
+            card_back = responseJSON.card_faces[1].image_uris.png;
         }
         else {
-            img_url = responseJSON.image_uris.small;
+            img_url = responseJSON.image_uris.png;
         }
         return {name:cardName, img:img_url, back:card_back, color:color_identity};
     }
