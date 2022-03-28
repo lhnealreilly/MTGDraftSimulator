@@ -86,7 +86,10 @@ function addToDeck(card){
 
 const cardDiv = document.getElementById('pack_holder');
 
+document.getElementById('blackout').style.display = 'block';
 await createPacks(2);
+document.getElementById('blackout').style.display = 'none';
+
 currPack = packArr[packIndex];
 renderCards(currPack, cardDiv, true);
 
