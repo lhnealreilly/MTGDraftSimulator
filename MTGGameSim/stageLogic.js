@@ -13,24 +13,44 @@ stage.container().style.left = '0';
 var layer = new Konva.Layer();
 stage.add(layer);
 
+let cards = [];
+
 const cardZones = document.getElementsByClassName("sub-card-zone");
+console.log(cardZones);
 let cardZoneRects = [];
 for (zone of cardZones) {
-    cardZoneRects.push({ rect: zone.getBoundingClientRect(), cards: [] });
+    cardZoneRects.push({ rect: zone.getBoundingClientRect(), cards: [], parent_id:zone.parentElement.id });
+}
+
+window.onresize = () => {
+    stage.width = window.innerWidth;
+    stage.height = window.innerHeight;
+    for (let i = 0; i < cardZones.length; ++i) {
+        let zone = cardZones[i]
+        cardZoneRects[i].rect = zone.getBoundingClientRect();
+    }
+    for (card of cards) {
+        let scale = getSmallestZone();
+        card.offsetX(scale * 2.5 / 2);
+        card.offsetY(scale * 3.5  / 2);
+        card.width(scale * 2.5);
+        card.height(scale * 3.5);
+    }
+    relayerZones();
 }
 
 function addCard(url) {
     var imageObj = new Image();
-    let scale = getShortestZoneHeight()/3.5;
+    let scale = getSmallestZone();
     imageObj.onload = function () {
         var card = new Konva.Image({
             x: 100,
             y: 250,
-            offsetX: scale*2.5/2,
+            offsetX: scale * 2.5 / 2,
             offsetY: scale * 3.5 / 2,
             image: imageObj,
-            width: scale*2.5,
-            height: scale*3.5,
+            width: scale * 2.5,
+            height: scale * 3.5,
             draggable: true,
         });
         card.on('dragstart', (e) => {
@@ -43,28 +63,30 @@ function addCard(url) {
         });
         // add the shape to the layer
         layer.add(card);
+        cards.push(card);
     }
     imageObj.src = url;
 }
 
 
-function getShortestZoneHeight(){
+function getSmallestZone() {
     let shortest = cardZoneRects[0].rect.height;
+    let thinnest = cardZoneRects[0].rect.width;
     for (zone of cardZoneRects) {
         if (zone.rect.height < shortest) {
             shortest = zone.rect.height;
         }
+        if(zone.rect.width < thinnest) {
+            shortest = zone.rect.width;
+        }
     }
-    console.log(shortest);
-    return shortest;
+    return (shortest/3.5 > thinnest/2.5) ? thinnest/2.5 : shortest / 3.5;
 }
 
 function dropCard(card) {
     for (zone of cardZoneRects) {
         if (inRect(zone.rect, card)) {
             zone.cards.push(card);
-            card.x(zone.rect.x + card.width() / 2);
-            card.y(zone.rect.y + card.height() / 2);
             relayerZones();
             return;
         }
@@ -74,7 +96,7 @@ function dropCard(card) {
 function pickupCard(card) {
     for (zone of cardZoneRects) {
         if (inRect(zone.rect, card)) {
-            if(zone.cards.includes(card)){
+            if (zone.cards.includes(card)) {
                 zone.cards.splice(zone.cards.indexOf(card), 1);
             }
             relayerZones();
@@ -83,15 +105,14 @@ function pickupCard(card) {
     }
 }
 
-const yOffset = 40;
-function relayerZones(){
-    for(zone of cardZoneRects){
-        zone.cards.forEach((a, i) => {a.y(zone.rect.y + a.height() / 2 + i * yOffset); a.setZIndex(i)});
+const yOffset = 30;
+function relayerZones() {
+    for (zone of cardZoneRects) {
+        zone.cards.forEach((a, i) => { a.x(zone.rect.x + a.width() / 2); a.y(zone.rect.y + a.height() / 2 + i * yOffset); a.setZIndex(i) });
     }
 }
 
 function inRect(rect, card) {
-    console.log(rect, card);
     return (card.x() > rect.left && card.x() < rect.right && card.y() > rect.top && card.y() < rect.bottom);
 }
 
@@ -113,6 +134,24 @@ document.getElementById('tap-button').addEventListener('click', () => {
 
 document.getElementById('delete-button').addEventListener('click', () => {
     currentShape.destroy();
+});
+
+document.getElementById('fill-button').addEventListener('click', () => {
+    for(let i = 0; i < cards.length; ++i){
+        pickupCard(cards[i]);
+        cardZoneRects[i].cards.push(cards[i]);
+        relayerZones();
+    }
+});
+
+document.getElementById('side-board-button').addEventListener('click', () => {
+    let side_board = cardZoneRects.find((x) => {console.log(x); if(x.parent_id === 'sideboard') return x;}); 
+    console.log(side_board);
+    for(let i = 0; i < cards.length; ++i){
+        pickupCard(cards[i]);
+        side_board.cards.push(cards[i]);
+        relayerZones();
+    }
 });
 
 window.addEventListener('click', () => {
@@ -137,9 +176,11 @@ stage.on('contextmenu', function (e) {
         containerRect.left + stage.getPointerPosition().x + 4 + 'px';
 });
 
-addCard("https://c1.scryfall.com/file/scryfall-cards/png/front/b/d/bd8fa327-dd41-4737-8f19-2cf5eb1f7cdd.png?1614638838");
-addCard("https://c1.scryfall.com/file/scryfall-cards/png/front/b/d/bd8fa327-dd41-4737-8f19-2cf5eb1f7cdd.png?1614638838");
-addCard("https://c1.scryfall.com/file/scryfall-cards/png/front/b/d/bd8fa327-dd41-4737-8f19-2cf5eb1f7cdd.png?1614638838");
-addCard("https://c1.scryfall.com/file/scryfall-cards/png/front/b/d/bd8fa327-dd41-4737-8f19-2cf5eb1f7cdd.png?1614638838");
-addCard("https://c1.scryfall.com/file/scryfall-cards/png/front/a/e/aea5c36b-c107-4daf-bedb-507b4cd64724.png?1643664067");
+for(zone of cardZoneRects){
+    addCard("https://c1.scryfall.com/file/scryfall-cards/png/front/b/d/bd8fa327-dd41-4737-8f19-2cf5eb1f7cdd.png?1614638838");
+}
+
+
+
+
 
