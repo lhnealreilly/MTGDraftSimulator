@@ -17,7 +17,7 @@ stage.add(topLayer);
 
 let cards = [];
 let selectArr = [];
-const yOffset = 30;
+const yOffset = 40;
 
 const cardZones = document.getElementsByClassName("sub-card-zone");
 let cardZoneRects = [];
@@ -42,6 +42,20 @@ window.onresize = () => {
     relayerCardZones();
 }
 
+let keyDownObject = {};
+document.addEventListener('keydown', (event) => {
+    var name = event.key;
+    var code = event.code;
+    // Alert the key name and key code on keydown
+    keyDownObject[name] = true;
+  }, false);
+  document.addEventListener('keyup', (event) => {
+    var name = event.key;
+    var code = event.code;
+    // Alert the key name and key code on keydown
+    keyDownObject[name] = false;
+  }, false);
+
 function addCard(url) {
     var imageObj = new Image();
     let scale = getSmallestZone();
@@ -55,10 +69,25 @@ function addCard(url) {
             width: scale * 2.5,
             height: scale * 3.5,
             draggable: true,
-            stroke: 'blue',
+            stroke: '#00FFFF',
             strokeWidth: 0,
         });
+        card.on('dblclick', (e) => {
+            if(keyDownObject['Shift']){
+                for(let zone of cardZoneRects){
+                    if(zone.cards.includes(card)){
+                        addSelection(zone.cards);
+                        return;
+                    }
+                }
+            }
+        });
         card.on('dragstart', (e) => {
+            if (keyDownObject['Shift']){
+                card.draggable(false);
+                card.draggable(true);
+                return;
+            }
             if (selectArr.includes(card)) {
                 pickupCards(selectArr);
             }
@@ -72,13 +101,16 @@ function addCard(url) {
                     let c1 = selectArr[i];
                     if (c1 != card) {
                         c1.x(card.x());
-                        c1.y(card.y() + i * yOffset);
+                        c1.y(card.y() + (i - selectArr.indexOf(card)) * yOffset);
                     }
-                    c1.zIndex(i);
+                    c1.zIndex(cards.length - selectArr.length + i);
                 }
             }
         });
         card.on('dragend', (e) => {
+            if (keyDownObject['Shift']){
+                return;
+            }
             if (selectArr.includes(card)) {
                 dropCards(selectArr);
             }
@@ -221,7 +253,7 @@ stage.on('mousedown', function (event) {
     let mousePos = stage.getPointerPosition();
     startX = mousePos.x;
     startY = mousePos.y;
-    if (event.target === stage) {
+    if (event.target === stage || keyDownObject['Shift']) {
         mouseDown = true;
         clearSelected();
     }
@@ -250,8 +282,7 @@ stage.on('mouseup', function (event) {
         for (let zone of cardZoneRects) {
             for (let card of zone.cards) {
                 if (hitCheck(selectRect, card)) {
-                    card.strokeWidth(4);
-                    selectArr.push(card);
+                    addSelection([card]);
                 }
             }
         }
@@ -260,6 +291,8 @@ stage.on('mouseup', function (event) {
     selectRect.visible(false);
     mouseDown = false;
 });
+
+
 
 
 function hitCheck(shape1, card) {
@@ -292,6 +325,13 @@ function clearSelected() {
         card.strokeWidth(0);
     }
     selectArr = [];
+}
+
+function addSelection(cardArr){
+    for(let card of cardArr){
+        card.strokeWidth(4);
+        selectArr.push(card);
+    }
 }
 
 async function initCards() {
