@@ -17,6 +17,7 @@ stage.add(topLayer);
 
 let cards = [];
 let selectArr = [];
+const yOffset = 30;
 
 const cardZones = document.getElementsByClassName("sub-card-zone");
 let cardZoneRects = [];
@@ -58,28 +59,30 @@ function addCard(url) {
             strokeWidth: 0,
         });
         card.on('dragstart', (e) => {
-            if(selectArr.includes(card)){
+            if (selectArr.includes(card)) {
                 pickupCards(selectArr);
             }
-            else{
+            else {
                 pickupCards([card]);
             }
         });
-        card.on('dragmove', (e) =>{
-            if(selectArr.includes(card)){
-                for(let c1 of selectArr){
-                    if(c1 != card){
+        card.on('dragmove', (e) => {
+            if (selectArr.includes(card)) {
+                for (let i = 0; i < selectArr.length; ++i) {
+                    let c1 = selectArr[i];
+                    if (c1 != card) {
                         c1.x(card.x());
-                        c1.y(card.y());
+                        c1.y(card.y() + i * yOffset);
                     }
+                    c1.zIndex(i);
                 }
             }
         });
         card.on('dragend', (e) => {
-            if(selectArr.includes(card)){
+            if (selectArr.includes(card)) {
                 dropCards(selectArr);
             }
-            else{
+            else {
                 dropCards([card]);
             }
             clearSelected();
@@ -108,7 +111,7 @@ function getSmallestZone() {
 }
 
 function dropCards(cards) {
-    for(let card of cards){
+    for (let card of cards) {
         for (let zone of cardZoneRects) {
             if (inRect(zone.rect, card)) {
                 zone.cards.push(card);
@@ -119,7 +122,7 @@ function dropCards(cards) {
 }
 
 function pickupCards(cards) {
-    for(let card of cards){
+    for (let card of cards) {
         for (let zone of cardZoneRects) {
             if (inRect(zone.rect, card)) {
                 if (zone.cards.includes(card)) {
@@ -131,7 +134,7 @@ function pickupCards(cards) {
     relayerCardZones();
 }
 
-const yOffset = 30;
+
 function relayerCardZones() {
     for (let zone of cardZoneRects) {
         zone.cards.forEach((a, i) => { a.x(zone.rect.x + a.width() / 2); a.y(zone.rect.y + a.height() / 2 + i * yOffset); a.setZIndex(i) });
@@ -244,10 +247,12 @@ stage.on('mouseup', function (event) {
         clearSelected();
     }
     else if (mouseDown) {
-        for (let card of cards) {
-            if (hitCheck(selectRect, card)) {
-                card.strokeWidth(4);
-                selectArr.push(card);
+        for (let zone of cardZoneRects) {
+            for (let card of zone.cards) {
+                if (hitCheck(selectRect, card)) {
+                    card.strokeWidth(4);
+                    selectArr.push(card);
+                }
             }
         }
     }
@@ -282,17 +287,17 @@ function hitCheck(shape1, card) {
     }
 }
 
-function clearSelected(){
-    for(let card of selectArr){
+function clearSelected() {
+    for (let card of selectArr) {
         card.strokeWidth(0);
     }
     selectArr = [];
 }
 
-async function initCards(){
+async function initCards() {
     for (let zone of cardZoneRects) {
         let response = await fetch("https://api.scryfall.com/cards/random?-is:double-faced");
-        if(response.ok){
+        if (response.ok) {
             let responseJSON = await response.json();
             let img;
             addCard(responseJSON.image_uris.png);
