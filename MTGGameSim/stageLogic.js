@@ -17,7 +17,8 @@ stage.add(topLayer);
 
 let cards = [];
 let selectArr = [];
-const yOffset = 40;
+const yOffset = 25;
+const cropPercentage = 10/16;
 
 const cardZones = document.getElementsByClassName("sub-card-zone");
 let cardZoneRects = [];
@@ -35,9 +36,9 @@ window.onresize = () => {
     for (let card of cards) {
         let scale = getSmallestZone();
         card.offsetX(scale * 2.5 / 2);
-        card.offsetY(scale * 3.5 / 2);
+        card.offsetY(scale * 3.5 / 2 * cropPercentage);
         card.width(scale * 2.5);
-        card.height(scale * 3.5);
+        card.height(scale * 3.5 * cropPercentage);
     }
     relayerCardZones();
 }
@@ -48,13 +49,14 @@ document.addEventListener('keydown', (event) => {
     var code = event.code;
     // Alert the key name and key code on keydown
     keyDownObject[name] = true;
-  }, false);
-  document.addEventListener('keyup', (event) => {
+}, false);
+document.addEventListener('keyup', (event) => {
     var name = event.key;
     var code = event.code;
     // Alert the key name and key code on keydown
     keyDownObject[name] = false;
-  }, false);
+}, false);
+
 
 function addCard(url) {
     var imageObj = new Image();
@@ -64,18 +66,55 @@ function addCard(url) {
             x: 100,
             y: 250,
             offsetX: scale * 2.5 / 2,
-            offsetY: scale * 3.5 / 2,
+            offsetY: scale * 3.5/ 2 * cropPercentage,
             image: imageObj,
             width: scale * 2.5,
-            height: scale * 3.5,
+            height: scale * 3.5*cropPercentage,
             draggable: true,
             stroke: '#00FFFF',
             strokeWidth: 0,
         });
+        card.crop({
+            x: 0, 
+            y: 0, 
+            width: imageObj.width,
+            height: imageObj.height*cropPercentage,
+        });
+        let popup = card.clone();
+        popup.crop({
+            x: 0, 
+            y: 0, 
+            width: imageObj.width,
+            height: imageObj.height,
+        });
+        popup.height(scale* 7);
+        popup.width(scale*5);
+        popup.visible(false);
+        card.on('mouseenter', (e) =>{
+            console.log(card.x() + card.width() + popup.width());
+            console.log(window.innerWidth);
+            if(card.x() + card.width() + popup.width() > window.innerWidth){
+                popup.x(card.x() - popup.width());
+            }
+            else{
+                popup.x(card.x() + card.width());
+            }
+            if(card.y() + popup.height() < window.innerHeight){
+                popup.y(card.y());
+            }
+            else{
+                popup.y(card.y() - popup.height() + card.height());
+            }
+            popup.visible(true);
+        });
+        card.on('mouseleave', (e) =>{
+            popup.visible(false);
+        });
+        topLayer.add(popup);
         card.on('dblclick', (e) => {
-            if(keyDownObject['Shift']){
-                for(let zone of cardZoneRects){
-                    if(zone.cards.includes(card)){
+            if (keyDownObject['Shift']) {
+                for (let zone of cardZoneRects) {
+                    if (zone.cards.includes(card)) {
                         addSelection(zone.cards);
                         return;
                     }
@@ -83,7 +122,8 @@ function addCard(url) {
             }
         });
         card.on('dragstart', (e) => {
-            if (keyDownObject['Shift']){
+            popup.visible(false);
+            if (keyDownObject['Shift']) {
                 card.draggable(false);
                 card.draggable(true);
                 return;
@@ -108,14 +148,14 @@ function addCard(url) {
             }
         });
         card.on('dragend', (e) => {
-            if (keyDownObject['Shift']){
+            if (keyDownObject['Shift']) {
                 return;
             }
             if (selectArr.includes(card)) {
-                dropCards(selectArr);
+                dropCards(card, selectArr);
             }
             else {
-                dropCards([card]);
+                dropCards(card, [card]);
             }
             clearSelected();
             stage.batchDraw();
@@ -136,18 +176,23 @@ function getSmallestZone() {
             shortest = zone.rect.height;
         }
         if (zone.rect.width < thinnest) {
-            shortest = zone.rect.width;
+            thinnest = zone.rect.width;
         }
     }
-    return (shortest / 3.5 > thinnest / 2.5) ? thinnest / 2.5 : shortest / 3.5;
+    console.log(shortest, thinnest);
+    return (shortest / (3.5 * cropPercentage) > thinnest / 2.5) ? thinnest / 2.5 : shortest/(3.5*cropPercentage);
 }
 
-function dropCards(cards) {
-    for (let card of cards) {
-        for (let zone of cardZoneRects) {
-            if (inRect(zone.rect, card)) {
-                zone.cards.push(card);
-            }
+function dropCards(baseCard, cards) {
+    let targetZone;
+    for (let zone of cardZoneRects) {
+        if (inRect(zone.rect, baseCard)) {
+            targetZone = zone;
+        }
+    }
+    if (targetZone != undefined) {
+        for (let card of cards) {
+            targetZone.cards.push(card);
         }
     }
     relayerCardZones();
@@ -156,10 +201,8 @@ function dropCards(cards) {
 function pickupCards(cards) {
     for (let card of cards) {
         for (let zone of cardZoneRects) {
-            if (inRect(zone.rect, card)) {
-                if (zone.cards.includes(card)) {
-                    zone.cards.splice(zone.cards.indexOf(card), 1);
-                }
+            if (zone.cards.includes(card)) {
+                zone.cards.splice(zone.cards.indexOf(card), 1);
             }
         }
     }
@@ -183,18 +226,24 @@ let currentShape;
 var menuNode = document.getElementById('menu');
 document.getElementById('tap-button').addEventListener('click', () => {
     console.log(currentShape.rotation());
-    if (currentShape.rotation() == 90) {
-        currentShape.rotation(0);
+    if (selectArr.includes(currentShape)) {
+        for (let card of selectArr) {
+            if (card.rotation() == 90) {
+                card.rotation(0);
+            }
+            else {
+                card.rotation(90);
+            }
+        }
     }
     else {
-        currentShape.rotation(90);
+        if (currentShape.rotation() == 90) {
+            currentShape.rotation(0);
+        }
+        else {
+            currentShape.rotation(90);
+        }
     }
-    console.log(currentShape.x());
-});
-
-
-document.getElementById('delete-button').addEventListener('click', () => {
-    currentShape.destroy();
 });
 
 document.getElementById('fill-button').addEventListener('click', () => {
@@ -206,7 +255,7 @@ document.getElementById('fill-button').addEventListener('click', () => {
 });
 
 document.getElementById('side-board-button').addEventListener('click', () => {
-    let side_board = cardZoneRects.find((x) => { console.log(x); if (x.parent_id === 'sideboard') return x; });
+    let side_board = cardZoneRects.find((x) => { console.log(x); if (x.parent_id === 'stack') return x; });
     console.log(side_board);
     pickupCards(cards);
     for (let i = 0; i < cards.length; ++i) {
@@ -250,12 +299,15 @@ let selectRect = new Konva.Rect({
 topLayer.add(selectRect);
 
 stage.on('mousedown', function (event) {
-    let mousePos = stage.getPointerPosition();
-    startX = mousePos.x;
-    startY = mousePos.y;
-    if (event.target === stage || keyDownObject['Shift']) {
-        mouseDown = true;
-        clearSelected();
+    console.log(event.evt.button);
+    if (event.evt.button === 0) {
+        let mousePos = stage.getPointerPosition();
+        startX = mousePos.x;
+        startY = mousePos.y;
+        if (event.target === stage || keyDownObject['Shift']) {
+            mouseDown = true;
+            clearSelected();
+        }
     }
 });
 
@@ -271,25 +323,27 @@ stage.on('mousemove', function (event) {
 });
 
 stage.on('mouseup', function (event) {
-    let mousePos = stage.getPointerPosition();
-    const diffX = Math.abs(mousePos.x - startX);
-    const diffY = Math.abs(mousePos.y - startY);
+    if (event.evt.button === 0) {
+        let mousePos = stage.getPointerPosition();
+        const diffX = Math.abs(mousePos.x - startX);
+        const diffY = Math.abs(mousePos.y - startY);
 
-    if (diffX < delta && diffY < delta) {
-        clearSelected();
-    }
-    else if (mouseDown) {
-        for (let zone of cardZoneRects) {
-            for (let card of zone.cards) {
-                if (hitCheck(selectRect, card)) {
-                    addSelection([card]);
+        if (diffX < delta && diffY < delta) {
+            clearSelected();
+        }
+        else if (mouseDown) {
+            for (let zone of cardZoneRects) {
+                for (let card of zone.cards) {
+                    if (hitCheck(selectRect, card)) {
+                        addSelection([card]);
+                    }
                 }
             }
         }
-    }
 
-    selectRect.visible(false);
-    mouseDown = false;
+        selectRect.visible(false);
+        mouseDown = false;
+    }
 });
 
 
@@ -327,8 +381,8 @@ function clearSelected() {
     selectArr = [];
 }
 
-function addSelection(cardArr){
-    for(let card of cardArr){
+function addSelection(cardArr) {
+    for (let card of cardArr) {
         card.strokeWidth(4);
         selectArr.push(card);
     }
@@ -336,7 +390,7 @@ function addSelection(cardArr){
 
 async function initCards() {
     for (let zone of cardZoneRects) {
-        let response = await fetch("https://api.scryfall.com/cards/random?-is:double-faced");
+        let response = await fetch("https://api.scryfall.com/cards/random?-is:double-faced+version=png");
         if (response.ok) {
             let responseJSON = await response.json();
             let img;
