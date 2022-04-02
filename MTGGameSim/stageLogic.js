@@ -574,6 +574,11 @@ function updateNumCardsInDeck(){
 
 window.onload = () => initDeckFromLS();
 
+document.getElementById('finished-building').addEventListener('click', function(event){
+    ls.setItem('deckObj', JSON.stringify({deck:getCardsByParentZone('deck').map(a => a.getAttr('data')), sideBoard: getCardsByParentZone('side-board').map(a => a.getAttr('data')), commandZone: getCardsByParentZone('specialty-board').map(a => a.getAttr('data'))}));
+    console.log(ls.getItem('deckObj'));
+});
+
 
 
 

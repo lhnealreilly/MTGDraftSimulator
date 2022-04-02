@@ -534,7 +534,7 @@ function initDeckFromLS() {
     }
 }
 
-export function getCardsByParentZone(zoneName) {
+function getCardsByParentZone(zoneName) {
     return cardZoneRects.filter((x) => { if (x.parent_id === zoneName) return x; }).reduce((x, a) => { return x.concat(a.cards) }, []);
 }
 
