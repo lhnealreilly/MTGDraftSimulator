@@ -1,7 +1,11 @@
+import *as library from "./library.js"
+
 const numCardsInDeck = document.getElementById('card-count');
 
 let width = window.innerWidth;
 let height = window.innerHeight;
+let userDeck = [];
+let commandZone = [];
 
 let stage = new Konva.Stage({
     container: 'container',
@@ -521,25 +525,12 @@ async function initCards2() {
 
 const ls = window.localStorage;
 
-function initDeckFromLS() {
-    let userDeck = [];
-    if (JSON.parse(ls.getItem('deck') === null)) {
-        userDeck = [];
-    }
-    else {
-        userDeck = JSON.parse(ls.getItem('deck'));
-    }
-    for (const card of userDeck) {
-        addCard(card, 10/16);
-    }
-}
-
 export function getCardsByParentZone(zoneName) {
     return cardZoneRects.filter((x) => { if (x.parent_id === zoneName) return x; }).reduce((x, a) => { return x.concat(a.cards) }, []);
 }
 
 
-window.onload = () => initDeckFromLS();
+window.onload = () => library.initDeckFromLS();
 
 
 
