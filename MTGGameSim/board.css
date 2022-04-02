@@ -7,7 +7,7 @@ html, body {
     background-color: blanchedalmond;
   }
 
-  #menu {
+  .menu {
     display: none;
     position: absolute;
     width: 100px;
@@ -16,7 +16,7 @@ html, body {
     border-radius: 3px;
   }
 
-  #menu button {
+  .menu button {
     width: 100%;
     background-color: white;
     border: none;
@@ -24,7 +24,7 @@ html, body {
     padding: 10px;
   }
 
-  #menu button:hover {
+  .menu button:hover {
     background-color: lightgray;
   }
 

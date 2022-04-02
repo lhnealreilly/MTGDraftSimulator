@@ -1,4 +1,4 @@
-import *as library from "./library.js"
+import * as library from "./library.js"
 
 const numCardsInDeck = document.getElementById('card-count');
 
@@ -295,6 +295,7 @@ function inRect(rect, card) {
  */
 let currentShape;
 let menuNode = document.getElementById('menu');
+let libraryMenuNode = document.getElementById('library-menu');
 document.getElementById('tap-button').addEventListener('click', () => {
     if (selectArr.includes(currentShape)) {
         for (let card of selectArr) {
@@ -371,6 +372,7 @@ document.getElementById('side-board-button').addEventListener('click', () => {
 window.addEventListener('click', () => {
     // hide menu
     menuNode.style.display = 'none';
+    libraryMenuNode.style.display = 'none';
 });
 
 stage.on('contextmenu', function (e) {
@@ -530,7 +532,40 @@ export function getCardsByParentZone(zoneName) {
 }
 
 
-window.onload = () => library.initDeckFromLS();
+window.onload = () => {
+    new library.library()
+    initGame();
+}
+
+function initGame(){
+    let imageObj = new Image();
+    let scale = getSmallestZone(1);
+    
+    imageObj.onload = function () {
+        let library = new Konva.Image({
+            x: 0,
+            y: stage.height() - scale*3.5 - yOffset(),
+            image: imageObj,
+            width: scale * 2.5,
+            height: scale * 3.5,
+            draggable: false,
+            stroke: '#00FFFF',
+            strokeWidth: 0,
+        });
+        library.on('contextmenu', function(e){
+            e.evt.preventDefault();
+            currentShape = e.target;
+            libraryMenuNode.style.display = 'initial';
+            let containerRect = stage.container().getBoundingClientRect();
+            libraryMenuNode.style.top =
+                containerRect.top + stage.getPointerPosition().y + 4 + 'px';
+            libraryMenuNode.style.left =
+                containerRect.left + stage.getPointerPosition().x + 4 + 'px';
+        });
+        cardLayer.add(library)
+    }
+    imageObj.src = "./MTGCardBack.jpg";
+}
 
 
 
