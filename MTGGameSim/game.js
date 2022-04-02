@@ -9,7 +9,7 @@ let stage = new Konva.Stage({
     height: height,
 });
 stage.container().style.position = 'absolute';
-stage.container().style.top = '3%';
+stage.container().style.top = '0';
 stage.container().style.left = '0';
 const stageTop = () => container.getBoundingClientRect().y;
 stage.height(container.getBoundingClientRect().height);
@@ -268,7 +268,6 @@ function relayerCardZones() {
     for (let zone of cardZoneRects) {
         zone.cards.forEach((a, i) => { a.x(zone.rect.x + a.width() / 2); a.y(zone.rect.y - stageTop() + a.height() / 2 + i * yOffset()); a.setZIndex(i) });
     }
-    updateNumCardsInDeck();
 }
 
 /**
@@ -338,7 +337,7 @@ document.getElementById('fill-button').addEventListener('click', () => {
 });
 
 document.getElementById('side-board-button').addEventListener('click', () => {
-    let side_board = cardZoneRects.find((x) => { if (x.parent_id === 'side-board') return x; });
+    let side_board = cardZoneRects.find((x) => { if (x.parent_id === 'stack') return x; });
     pickupCards(cards);
     for (let i = 0; i < cards.length; ++i) {
         side_board.cards.push(cards[i]);
@@ -346,24 +345,24 @@ document.getElementById('side-board-button').addEventListener('click', () => {
     }
 });
 
-document.getElementById('sort-zone').addEventListener('click', () => {
-    let deckBoard = cardZoneRects.filter((x) => { if (x.parent_id === 'deck') return x; });
-    let deckCards = [];
-    for(let i = 0; i < deckBoard.length; ++i){
-        let zone = deckBoard[i];
-        deckCards = deckCards.concat(zone.cards);
-    }
-    pickupCards(deckCards);
-    for(const card of deckCards){
-        if(Math.floor(card.getAttr('data').CMC) < deckBoard.length){
-            deckBoard[Math.floor(card.getAttr('data').CMC)].cards.push(card);
-        }
-        else{
-            deckBoard[deckBoard.length-1].cards.push(card);
-        }
-    }
-    relayerCardZones();
-});
+// document.getElementById('sort-zone').addEventListener('click', () => {
+//     let deckBoard = cardZoneRects.filter((x) => { if (x.parent_id === 'deck') return x; });
+//     let deckCards = [];
+//     for(let i = 0; i < deckBoard.length; ++i){
+//         let zone = deckBoard[i];
+//         deckCards = deckCards.concat(zone.cards);
+//     }
+//     pickupCards(deckCards);
+//     for(const card of deckCards){
+//         if(Math.floor(card.getAttr('data').CMC) < deckBoard.length){
+//             deckBoard[Math.floor(card.getAttr('data').CMC)].cards.push(card);
+//         }
+//         else{
+//             deckBoard[deckBoard.length-1].cards.push(card);
+//         }
+//     }
+//     relayerCardZones();
+// });
 
 window.addEventListener('click', () => {
     // hide menu
@@ -531,9 +530,8 @@ function initDeckFromLS() {
         userDeck = JSON.parse(ls.getItem('deck'));
     }
     for (const card of userDeck) {
-        addCard(card, 1);
+        addCard(card, 10/16);
     }
-    showPopup = false;
 }
 
 export function getCardsByParentZone(zoneName) {
@@ -541,38 +539,8 @@ export function getCardsByParentZone(zoneName) {
 }
 
 
-const whiteLands = document.getElementById('white-lands');
-const blueLands = document.getElementById('blue-lands');
-const blackLands = document.getElementById('black-lands');
-const redLands = document.getElementById('red-lands');
-const greenLands = document.getElementById('green-lands');
-const lands = [whiteLands, blueLands, blackLands, redLands, greenLands];
-
-lands.forEach((a) => a.addEventListener('input', function(e){
-    updateNumCardsInDeck();
-}))
-
-function getNumLands() {
-    let sum = 0;
-    for(const land of lands){
-        if(parseInt(land.value) > 0){
-            sum += parseInt(land.value);
-        }
-    }
-    return sum;
-}
-
-function getLands() {
-}
-
-function updateNumCardsInDeck(){
-    if (getCardsByParentZone("deck") !== undefined) {
-        let countCards = getCardsByParentZone("deck").length + getNumLands();
-        numCardsInDeck.innerHTML = `Total Cards In Deck: ${countCards}`;
-    }
-}
-
 window.onload = () => initDeckFromLS();
+
 
 
 

@@ -46,7 +46,7 @@ html, body {
   display: grid;
   grid-gap: 3px;
   grid-template-columns: 10% 75% 1fr 15% 1fr ;
-  grid-template-rows: 1fr 80% 15% 1fr;
+  grid-template-rows: 1fr 75% 20% 1fr;
 }
 
 #hand{
@@ -67,7 +67,7 @@ html, body {
   grid-column: 2;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  grid-template-rows: repeat(5, 1fr);
+  grid-template-rows: 40% 20% 40%;
   width: 100%;
   height: 100%;
 }
